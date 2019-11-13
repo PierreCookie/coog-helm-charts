@@ -2,25 +2,23 @@
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 
+
 api:
+  enabled: true
   replicaCount: 1
-
   mongodb:
-    database: coog-api-v2
-
+    database: coog
   image:
     repository: coopengo/api
-    tag: latest
+    tag: 2.6.3
     pullPolicy: Always
-
-  imagePullSecrets: []
+  imagePullSecrets:
+    - name: dockerhub-coopengo
   nameOverride: ""
   fullnameOverride: ""
-
   service:
     type: ClusterIP
     port: 80
-
   resources:
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -32,30 +30,25 @@ api:
     requests:
       cpu: 100m
       memory: 150Mi
-
   nodeSelector: {}
-
   tolerations: []
-
   affinity: {}
 
 
 api_b2b_config:
+  enabled: false
   replicaCount: 1
-
   image:
     repository: coopengo/api-b2b-config
-    tag: latest
+    tag: 2.6.3
     pullPolicy: Always
-
-  imagePullSecrets: []
+  imagePullSecrets:
+    - name: dockerhub-coopengo
   nameOverride: ""
   fullnameOverride: ""
-
   service:
     type: ClusterIP
     port: 80
-
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -67,31 +60,25 @@ api_b2b_config:
     # requests:
     #   cpu: 32m
     #   memory: 256Mi
-
   nodeSelector: {}
-
   tolerations: []
-
   affinity: {}
 
 
 api_b2c:
   enabled: false
   replicaCount: 1
-
   image:
     repository: coopengo/api-b2c
-    tag: latest
+    tag: 2.6.3
     pullPolicy: Always
-
-  imagePullSecrets: []
+  imagePullSecrets:
+    - name: dockerhub-coopengo
   nameOverride: ""
   fullnameOverride: ""
-
   service:
     type: ClusterIP
     port: 80
-
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -103,31 +90,24 @@ api_b2c:
     # requests:
     #   cpu: 32m
     #   memory: 256Mi
-
   nodeSelector: {}
-
   tolerations: []
-
   affinity: {}
-
 
 app_b2c:
   enabled: false
   replicaCount: 1
-
   image:
     repository: coopengo/app-b2c
-    tag: latest
+    tag: 2.6.3
     pullPolicy: Always
-
-  imagePullSecrets: []
+  imagePullSecrets:
+    - name: dockerhub-coopengo
   nameOverride: ""
   fullnameOverride: ""
-
   service:
     type: ClusterIP
     port: 80
-
   ingress:
     enabled: false
     annotations: {}
@@ -136,12 +116,10 @@ app_b2c:
     hosts:
       - host: api-b2c.local
         paths: []
-
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
     #      - chart-example.local
-
   resources: {}
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -153,49 +131,22 @@ app_b2c:
     # requests:
     #   cpu: 100m
     #   memory: 128Mi
-
   nodeSelector: {}
-
   tolerations: []
-
   affinity: {}
 
-
-unoconv:
-  replicaCount: 2
-
-  image:
-    repository: coopengo/unoconv
-    tag: latest
-    pullPolicy: Always
-
-  imagePullSecrets: []
-  nameOverride: ""
-  fullnameOverride: ""
-
-  service:
-    type: ClusterIP
-    port: 5000
-
-  resources:
-    # We usually recommend not to specify default resources and to leave this as a conscious
-    # choice for the user. This also increases chances charts run on environments with little
-    # resources, such as Minikube. If you do want to specify resources, uncomment the following
-    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-    limits:
-      cpu: 200m
-      memory: 250Mi
-    requests:
-      cpu: 100m
-      memory: 250Mi
-
-  nodeSelector: {}
-
-  tolerations: []
-
-  affinity: {}
 
 celery:
+  enabled: true
+  batch: 
+    schedule: "0 20 * * *"
+  image:
+    repository: coopengo/app-coog
+    tag: 2.6.3
+    pullPolicy: Always
+  imagePullSecrets:
+    - name: dockerhub-coopengo
+  root_dir: /workspace/io
   workers: 4
   replicaCount: 1
   specificBatchConcurrency:
@@ -217,10 +168,16 @@ celery:
 
 
 coog:
+  enabled: true
+  root_dir: /workspace/io
   workers: 4
   log_level: INFO
   timeout: 3600
   replicaCount: 1
+  external_postgres:
+    enabled: false
+  postgres:
+    database: coog
   persistentVolume:
     enabled: true
     name: workspace-io
@@ -229,23 +186,19 @@ coog:
     size: 10Gi
     claim:
       name: ""
-
   image:
-    repository: coopengo/coog
-    tag: latest
+    repository: coopengo/app-coog
+    tag: 2.6.3
     pullPolicy: Always
-
-  imagePullSecrets: []
+  imagePullSecrets:
+    - name: dockerhub-coopengo
   nameOverride: ""
   fullnameOverride: ""
-
   securityContext:
     runAsUser: 1000
-
   service:
     type: ClusterIP
     port: 80
-
   ingress:
     enabled: false
     annotations: {}
@@ -254,12 +207,10 @@ coog:
     hosts:
       - host: coog.local
         paths: []
-
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
     #      - chart-example.local
-
   resources:
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -271,16 +222,20 @@ coog:
     requests:
       cpu: 500m
       memory: 1024Mi
-
   nodeSelector: {}
-
   tolerations: []
-
   affinity: {}
 
 
 cron:
   enabled: true
+  image:
+    repository: coopengo/app-coog
+    tag: 2.6.3
+    pullPolicy: Always
+  imagePullSecrets:
+    - name: dockerhub-coopengo
+  root_dir: /workspace/io
   affinity: {}
   nodeSelector: {}
   resources:
@@ -296,6 +251,74 @@ cron:
     periodSeconds: 120
     timeoutSeconds: 10
 
+gateway:
+  enabled: true
+  external_mongodb:
+    enabled: false
+  whitelist:
+  replicaCount: 1
+  image:
+    repository: coopengo/gateway
+    tag: 2.6.3
+    pullPolicy: Always
+  imagePullSecrets:
+    - name: dockerhub-coopengo
+  nameOverride: ""
+  fullnameOverride: ""
+  service:
+    type: ClusterIP
+    port: 80
+  ingress:
+    enabled: false
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: gateway.local
+        paths: []
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    limits:
+      cpu: 300m
+      memory: 300Mi
+    requests:
+      cpu: 100m
+      memory: 300Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  mongodb_user: "coog"
+  mongodb_root_password: "coog"
+  external_mongodb:
+    enabled: false
+    host: ""
+    port: ""
+  mongodb:
+    database: coog
+  jwt:
+    encryption: secret
+    expiration: 3600
+  portal_url: https://coog.local
+  gateway_url: https://coog.local
+  extraEnv:
+    BASE_PATH: "/gateway"
+    COOG_TOKEN_MODULE: "false"
+  entrypoint: "/gateway"
+  coog_web_token: "coog"
+  mongodb_user: "coog"
+  mongodb_root_password: "coog"
+
+
+jwt:
+  internal:
+    encryption: secret
 
 paybox:
   enabled: false
@@ -303,8 +326,10 @@ paybox:
 
   image:
     repository: coopengo/paybox
-    tag: latest
+    tag: 2.6.3
     pullPolicy: Always
+  imagePullSecrets:
+    - name: dockerhub-coopengo
 
   imagePullSecrets: []
   nameOverride: ""
@@ -346,73 +371,20 @@ paybox:
 
   affinity: {}
 
-
-web:
-  replicaCount: 1
-
-  image:
-    repository: coopengo/web
-    tag: latest
-    pullPolicy: Always
-
-  imagePullSecrets: []
-  nameOverride: ""
-  fullnameOverride: ""
-
-  service:
-    type: ClusterIP
-    port: 80
-
-  ingress:
-    enabled: false
-    annotations: {}
-      # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
-    hosts:
-      - host: web.local
-        paths: []
-
-    tls: []
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - chart-example.local
-
-  resources:
-    # We usually recommend not to specify default resources and to leave this as a conscious
-    # choice for the user. This also increases chances charts run on environments with little
-    # resources, such as Minikube. If you do want to specify resources, uncomment the following
-    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-    limits:
-      cpu: 200m
-      memory: 128Mi
-    requests:
-      cpu: 100m
-      memory: 128Mi
-
-  nodeSelector: {}
-
-  tolerations: []
-
-  affinity: {}
-
-
 portal:
   enabled: false
   replicaCount: 1
-
   image:
     repository: coopengo/portal
-    tag: latest
+    tag: 2.6.3
     pullPolicy: Always
-
-  imagePullSecrets: []
+  imagePullSecrets:
+    - name: dockerhub-coopengo
   nameOverride: ""
   fullnameOverride: ""
-
   service:
     type: ClusterIP
     port: 80
-
   ingress:
     enabled: false
     annotations: {}
@@ -421,12 +393,10 @@ portal:
     hosts:
       - host: portal.local
         paths: []
-
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
     #      - chart-example.local
-
   resources:
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -438,79 +408,32 @@ portal:
     requests:
       cpu: 100m
       memory: 128Mi
-
   nodeSelector: {}
-
   tolerations: []
-
   affinity: {}
 
 
-gateway:
-  whitelist:
-  replicaCount: 1
+postresql:
+  enabled: true
+  postgresqlDatabase: coog
+  postgresqlUsername: coog
+  postgresqlPassword: coog
 
-  image:
-    repository: coopengo/gateway
-    tag: latest
-    pullPolicy: Always
-
-  imagePullSecrets: []
-  nameOverride: ""
-  fullnameOverride: ""
-
-  service:
-    type: ClusterIP
-    port: 80
-
-  ingress:
-    enabled: false
-    annotations: {}
-      # kubernetes.io/ingress.class: nginx
-      # kubernetes.io/tls-acme: "true"
-    hosts:
-      - host: gateway.local
-        paths: []
-
-    tls: []
-    #  - secretName: chart-example-tls
-    #    hosts:
-    #      - chart-example.local
-
-  resources:
-    # We usually recommend not to specify default resources and to leave this as a conscious
-    # choice for the user. This also increases chances charts run on environments with little
-    # resources, such as Minikube. If you do want to specify resources, uncomment the following
-    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-    limits:
-      cpu: 300m
-      memory: 300Mi
-    requests:
-      cpu: 100m
-      memory: 300Mi
-
-  nodeSelector: {}
-
-  tolerations: []
-
-  affinity: {}
 
 static:
+  enabled: true
   replicaCount: 1
-
   image:
     repository: coopengo/static
-    tag: latest
+    tag: 2.6.0
     pullPolicy: Always
-
-  imagePullSecrets: []
+  imagePullSecrets:
+    - name: dockerhub-coopengo
   nameOverride: ""
   fullnameOverride: ""
-
   service:
     type: ClusterIP
     port: 80
-
   ingress:
     enabled: false
     annotations: {}
@@ -519,12 +442,10 @@ static:
     hosts:
       - host: static.local
         paths: []
-
     tls: []
     #  - secretName: chart-example-tls
     #    hosts:
     #      - chart-example.local
-
   resources:
     # We usually recommend not to specify default resources and to leave this as a conscious
     # choice for the user. This also increases chances charts run on environments with little
@@ -536,9 +457,100 @@ static:
     requests:
       cpu: 100m
       memory: 100Mi
-
   nodeSelector: {}
-
   tolerations: []
-
   affinity: {}
+
+
+unoconv:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: coopengo/unoconv
+    tag: 2.6.0
+    pullPolicy: Always
+  imagePullSecrets:
+    - name: dockerhub-coopengo
+  nameOverride: ""
+  fullnameOverride: ""
+  service:
+    type: ClusterIP
+    port: 5000
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    limits:
+      cpu: 200m
+      memory: 250Mi
+    requests:
+      cpu: 100m
+      memory: 250Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+
+web:
+  replicaCount: 1
+  image:
+    repository: coopengo/web
+    tag: 2.6.3
+    pullPolicy: Always
+  imagePullSecrets:
+    - name: dockerhub-coopengo
+  nameOverride: ""
+  fullnameOverride: ""
+  service:
+    type: ClusterIP
+    port: 80
+  ingress:
+    enabled: false
+    annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: web.local
+        paths: []
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+  resources:
+    # We usually recommend not to specify default resources and to leave this as a conscious
+    # choice for the user. This also increases chances charts run on environments with little
+    # resources, such as Minikube. If you do want to specify resources, uncomment the following
+    # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+    limits:
+      cpu: 200m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+redis:
+  enabled: true
+  usePassword: false
+  cluster:
+    enabled: false
+  rbac:
+    create: true
+  master:
+    persistence:
+      enabled: true
+
+mongodb:
+  enabled: true
+  image:
+    tag: "4.0.10-debian-9-r39"
+  replicaSet:
+    enabled: false
+  usePassword: true
+  mongodbUsername: coog
+  mongodbPassword: coog
+  mongodbDatabase: coog
+  mongodbRootPassword: coog
